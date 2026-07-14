@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: #0a0a0c;
+  --bg-elevated: #111114;
+  --bg-card: #17171b;
+  --text-ink: #f2f2f0;
+  --text-mute: #a0a0a8;
+  --border-hairline: #26262b;
+  --accent-signal: #ffc78a;
+  --accent-warn: #f5a623;
+  --accent-crit: #ff5d5d;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-ink);
+  font-family: Switzer, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(255, 199, 138, 0.25);
+  color: #f2f2f0;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-scroll 36s linear infinite;
+}
