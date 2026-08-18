@@ -49,12 +49,20 @@ export default function Nav() {
           ))}
         </ul>
 
-        <a
-          href="#contact"
-          className="rounded-sm bg-signal px-3.5 py-2 font-body text-[13px] font-semibold text-base transition-opacity hover:opacity-90"
-        >
-          Get a Demo
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="/login"
+            className="font-body text-[14px] font-medium text-mute transition-colors hover:text-ink"
+          >
+            Log in
+          </a>
+          <a
+            href="#contact"
+            className="rounded-sm bg-signal px-3.5 py-2 font-body text-[13px] font-semibold text-base transition-opacity hover:opacity-90"
+          >
+            Get a Demo
+          </a>
+        </div>
       </nav>
     </header>
   );

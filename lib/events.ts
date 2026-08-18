@@ -179,14 +179,14 @@ export async function getOverviewMetrics(
     blockRate: events.length === 0 ? 0 : blocked / events.length,
     p50: percentile(latencies, 0.5),
     p95: percentile(latencies, 0.95),
-    byHour: [...buckets.entries()].map(([hour, counts]) => ({
+    byHour: Array.from(buckets.entries()).map(([hour, counts]) => ({
       hour,
       ...counts,
     })),
-    byTier: [...tierCounts.entries()]
+    byTier: Array.from(tierCounts.entries())
       .map(([tier, count]) => ({ tier, count }))
       .sort((a, b) => a.tier.localeCompare(b.tier)),
-    topApps: [...appTotals.entries()]
+    topApps: Array.from(appTotals.entries())
       .map(([id, counts]) => ({
         id,
         name: appNames.get(id) ?? "Removed app",
