@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
+import DetectorWorkbench from "@/components/DetectorWorkbench";
 import ScrollingMarquee from "@/components/ScrollingMarquee";
 import FeaturesDashboard from "@/components/FeaturesDashboard";
 import ThreatHub from "@/components/ThreatHub";
@@ -11,6 +12,7 @@ export default function Home() {
     <main className="min-h-screen bg-base">
       <Nav />
       <Hero />
+      <DetectorWorkbench />
       <ScrollingMarquee />
       <FeaturesDashboard />
       <ThreatHub />

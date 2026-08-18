@@ -25,6 +25,14 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+
+# database
+/prisma/*.db
+/prisma/*.db-journal
+
+# generated prisma client
+/lib/generated
 
 # typescript
 *.tsbuildinfo

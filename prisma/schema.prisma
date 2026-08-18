@@ -1,0 +1,231 @@
+// PromptGuard dashboard — Phase 0 (tenancy) + Phase 1 (gateway console)
+// See docs/dashboard-features.md in the detector repo for the product spec.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  memberships Membership[]
+  sessions    Session[]
+  feedback    EventFeedback[]
+  invitesSent Invite[]        @relation("InviteInviter")
+  apiKeys     ApiKey[]        @relation("ApiKeyCreator")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Org {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  // free | team | business | enterprise
+  plan String @default("free")
+
+  // none | hashed | raw  — controls what prompt text we persist
+  retentionMode String @default("hashed")
+  rawTtlDays    Int    @default(7)
+
+  // Phase 1 alerting
+  slackWebhookUrl         String?
+  alertBlockRatePercent   Int     @default(25)
+  alertMinVolume          Int     @default(20)
+  alertOnHighConfidence   Boolean @default(true)
+  alertConfidenceFloor    Float   @default(0.9)
+
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+  apps        App[]
+  apiKeys     ApiKey[]
+  events      DetectionEvent[]
+  feedback    EventFeedback[]
+  alerts      Alert[]
+  invites     Invite[]
+}
+
+model Membership {
+  id     String @id @default(cuid())
+  userId String
+  orgId  String
+
+  // admin | analyst | viewer
+  role String @default("admin")
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  orgId       String
+  email       String
+  role        String    @default("analyst")
+  tokenHash   String    @unique
+  invitedById String?
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  org       Org   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy User? @relation("InviteInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([email])
+}
+
+model App {
+  id    String  @id @default(cuid())
+  orgId String
+  name  String
+  slug  String
+  // openai | anthropic | google | self-hosted | other
+  provider    String?
+  environment String  @default("production")
+  createdAt   DateTime @default(now())
+
+  org     Org              @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  apiKeys ApiKey[]
+  events  DetectionEvent[]
+
+  @@unique([orgId, slug])
+  @@index([orgId])
+}
+
+model ApiKey {
+  id     String  @id @default(cuid())
+  orgId  String
+  appId  String?
+  name   String
+  // Display-safe fragments. The secret itself is only ever stored hashed.
+  prefix String
+  last4  String
+
+  keyHash     String    @unique
+  createdById String?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  org       Org              @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  app       App?             @relation(fields: [appId], references: [id], onDelete: Cascade)
+  createdBy User?            @relation("ApiKeyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  events    DetectionEvent[]
+
+  @@index([orgId])
+  @@index([appId])
+}
+
+model DetectionEvent {
+  id       String  @id @default(cuid())
+  orgId    String
+  appId    String
+  apiKeyId String?
+
+  // input | output  (output direction lands with the Phase 3 DLP module)
+  direction String @default("input")
+
+  // allowed | blocked
+  status String
+  // Injection | Benign
+  label String?
+  // low | medium | high
+  riskLevel String?
+
+  tierCaught          Int?
+  confidence          Float?
+  maxChunkProbability Float?
+  latencyMs           Int?
+
+  // JSON-encoded string[] of heuristic flags from the detector
+  heuristics String @default("[]")
+
+  model    String?
+  endpoint String?
+
+  promptHash    String
+  promptExcerpt String?
+  rawPrompt     String?
+
+  createdAt DateTime @default(now())
+
+  org      Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  app      App             @relation(fields: [appId], references: [id], onDelete: Cascade)
+  apiKey   ApiKey?         @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  feedback EventFeedback[]
+
+  @@index([orgId, createdAt])
+  @@index([orgId, status, createdAt])
+  @@index([appId, createdAt])
+}
+
+model EventFeedback {
+  id      String  @id @default(cuid())
+  eventId String
+  orgId   String
+  userId  String?
+
+  // false_positive | false_negative | confirmed
+  verdict String
+  note    String?
+
+  createdAt DateTime @default(now())
+
+  event DetectionEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  org   Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user  User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([eventId])
+}
+
+model Alert {
+  id      String  @id @default(cuid())
+  orgId   String
+  appId   String?
+  appName String?
+
+  // block_rate_spike | high_confidence_injection | gateway_error
+  kind String
+  // info | warning | critical
+  severity String @default("warning")
+
+  title String
+  body  String
+
+  deliveredSlack Boolean   @default(false)
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  org Org @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+  @@index([orgId, kind, createdAt])
+}

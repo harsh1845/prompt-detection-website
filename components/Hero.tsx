@@ -72,10 +72,10 @@ export default function Hero() {
           className="mt-10 flex flex-wrap items-center justify-center gap-3"
         >
           <a
-            href="#contact"
+            href="#test-lab"
             className="rounded-sm bg-signal px-5 py-2.5 font-body text-[14px] font-semibold text-base transition-opacity hover:opacity-90"
           >
-            Start Free Trial
+            Test the Detector
           </a>
           <a
             href="#docs"
