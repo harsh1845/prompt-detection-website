@@ -40,14 +40,23 @@ export type RecordEventInput = {
   app: App;
   apiKey?: ApiKey | null;
   result: DetectionResult;
-  text: string;
+  /** Present when the gateway saw the prompt. Absent for self-hosted reporters. */
+  text?: string | null;
+  /** Required when `text` is absent so every event stays fingerprinted. */
+  promptHash?: string | null;
   direction?: "input" | "output";
   model?: string | null;
   endpoint?: string | null;
 };
 
 export async function recordDetectionEvent(input: RecordEventInput) {
-  const retention = applyRetention(input.text, resolveRetention(input.org));
+  const retention = input.text
+    ? applyRetention(input.text, resolveRetention(input.org))
+    : {
+        promptHash: input.promptHash ?? "unavailable",
+        promptExcerpt: null,
+        rawPrompt: null,
+      };
 
   return prisma.detectionEvent.create({
     data: {
