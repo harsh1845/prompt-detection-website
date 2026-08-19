@@ -54,7 +54,7 @@ export default function CreateAppForm() {
       </div>
 
       <div className="sm:col-span-3">
-        <FormError message={state.error} />
+        <FormError message={state?.error} />
         <div className="mt-3">
           <SubmitButton pendingLabel="Creating…">Create app</SubmitButton>
         </div>

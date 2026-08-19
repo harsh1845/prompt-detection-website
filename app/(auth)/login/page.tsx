@@ -49,7 +49,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <FormError message={state.error} />
+        <FormError message={state?.error} />
 
         <SubmitButton pendingLabel="Signing in…" className="w-full">
           Log in

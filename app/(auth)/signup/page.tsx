@@ -76,7 +76,7 @@ export default function SignupPage() {
           />
         </div>
 
-        <FormError message={state.error} />
+        <FormError message={state?.error} />
 
         <SubmitButton pendingLabel="Creating…" className="w-full">
           Create workspace

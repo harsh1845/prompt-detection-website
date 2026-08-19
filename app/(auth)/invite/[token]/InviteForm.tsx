@@ -64,7 +64,7 @@ export default function InviteForm({
           />
         </div>
 
-        <FormError message={state.error} />
+        <FormError message={state?.error} />
 
         <SubmitButton pendingLabel="Joining…" className="w-full">
           Join workspace

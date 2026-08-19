@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "jailbreak",
+      "file": "jailbreak.json",
+      "name": "Jailbreak / persona hijack",
+      "category": "jailbreak",
+      "description": "DAN, unrestricted personas, and roleplay wrappers that try to drop safety policy."
+    },
+    {
+      "id": "injection",
+      "file": "injection.json",
+      "name": "Instruction override",
+      "category": "injection",
+      "description": "Classic prompt-injection: ignore previous instructions, hidden admin overrides, tagged payloads."
+    },
+    {
+      "id": "prompt_leak",
+      "file": "prompt_leak.json",
+      "name": "System-prompt leak",
+      "category": "prompt_leak",
+      "description": "Attempts to extract hidden system prompts, developer messages, or configuration."
+    },
+    {
+      "id": "benign_hard_negatives",
+      "file": "benign_hard_negatives.json",
+      "name": "Benign hard negatives",
+      "category": "benign",
+      "description": "Safe text that uses security/admin vocabulary so a noisy detector does not over-block."
+    },
+    {
+      "id": "proprietary",
+      "file": "proprietary.json",
+      "name": "PromptGuard sample set",
+      "category": "mixed",
+      "description": "Anonymized, consented hard cases from PromptGuard eval (narrative wrappers, output hijack, light obfuscation)."
+    }
+  ]
+}

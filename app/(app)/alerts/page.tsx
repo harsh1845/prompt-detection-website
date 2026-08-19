@@ -56,7 +56,7 @@ export default async function AlertsPage() {
           <div className="p-5">
             <EmptyState
               title="No alerts yet"
-              body="Alerts appear here when the block rate spikes, a high-confidence injection lands, or the detector goes unreachable. Send a test alert from settings to confirm delivery."
+              body="Alerts appear here when the block rate spikes, a high-confidence injection lands, the detector goes unreachable, or a red-team scan regresses. Send a test alert from settings to confirm delivery."
               action={
                 <Link href="/settings/integrations" className={ghostButtonClass}>
                   Alert settings

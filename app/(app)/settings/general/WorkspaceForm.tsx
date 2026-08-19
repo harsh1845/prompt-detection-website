@@ -75,8 +75,8 @@ export default function WorkspaceForm({
         />
       </div>
 
-      <FormError message={state.error} />
-      <FormSuccess message={state.success} />
+      <FormError message={state?.error} />
+      <FormSuccess message={state?.success} />
 
       {!disabled && <SubmitButton pendingLabel="Saving…">Save changes</SubmitButton>}
     </form>

@@ -6,7 +6,7 @@ import OrgSwitcher from "./OrgSwitcher";
 
 export default function TopBar({ context }: { context: TenantContext }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-hairline bg-base/95 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-hairline bg-base/95 backdrop-blur-md print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 lg:h-16 lg:flex-nowrap lg:py-0">
         <div className="flex items-center gap-3">
           {context.orgs.length > 1 ? (

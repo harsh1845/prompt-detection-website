@@ -69,9 +69,3 @@ export async function requireTenantContext(): Promise<TenantContext> {
   if (!context) redirect("/login");
   return context;
 }
-
-export async function requireManager(): Promise<TenantContext> {
-  const context = await requireTenantContext();
-  if (!canManage(context.role)) redirect("/overview?error=forbidden");
-  return context;
-}

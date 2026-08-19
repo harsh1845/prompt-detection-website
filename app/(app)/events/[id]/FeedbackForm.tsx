@@ -66,8 +66,8 @@ export default function FeedbackForm({
         />
       </div>
 
-      <FormError message={state.error} />
-      <FormSuccess message={state.success} />
+      <FormError message={state?.error} />
+      <FormSuccess message={state?.success} />
 
       <SubmitButton pendingLabel="Saving…">Record feedback</SubmitButton>
     </form>

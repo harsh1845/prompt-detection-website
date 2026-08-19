@@ -50,10 +50,10 @@ export default function InviteForm() {
         <SubmitButton pendingLabel="Creating…">Create invite</SubmitButton>
       </form>
 
-      <FormError message={state.error} />
-      <FormSuccess message={state.success} />
+      <FormError message={state?.error} />
+      <FormSuccess message={state?.success} />
 
-      {state.inviteUrl && (
+      {state?.inviteUrl && (
         <CopyBlock value={state.inviteUrl} label="Invite link" />
       )}
     </div>

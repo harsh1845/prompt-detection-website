@@ -6,6 +6,7 @@ const COOLDOWN_MINUTES: Record<string, number> = {
   block_rate_spike: 60,
   high_confidence_injection: 15,
   gateway_error: 15,
+  red_team_regression: 30,
 };
 
 type AlertDraft = {
@@ -166,4 +167,38 @@ export async function sendTestAlert(org: Org) {
   });
 
   return delivered;
+}
+
+export async function recordRedTeamAlert(
+  org: Org,
+  input: {
+    runId: string;
+    targetName: string;
+    failed: number;
+    regressions: number;
+    passRate: number | null;
+  }
+) {
+  if (input.failed === 0 && input.regressions === 0) return null;
+
+  const pass = input.passRate === null ? "n/a" : `${(input.passRate * 100).toFixed(1)}%`;
+  const title =
+    input.regressions > 0
+      ? `Red team failed ${input.regressions} new case${input.regressions === 1 ? "" : "s"} since last run`
+      : `Red team failed ${input.failed} case${input.failed === 1 ? "" : "s"} on ${input.targetName}`;
+
+  return createAlert(org, {
+    kind: "red_team_regression",
+    severity: input.regressions > 0 ? "critical" : "warning",
+    title,
+    body: [
+      `${input.targetName}`,
+      `Pass rate ${pass}`,
+      `${input.failed} failed`,
+      input.regressions > 0 ? `${input.regressions} regressions` : null,
+      `Run ${input.runId}`,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  });
 }

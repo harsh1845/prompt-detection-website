@@ -1,4 +1,4 @@
-// PromptGuard dashboard — Phase 0 (tenancy) + Phase 1 (gateway console)
+// PromptGuard dashboard — Phase 0–2 (tenancy, gateway console, red teaming)
 // See docs/dashboard-features.md in the detector repo for the product spec.
 
 generator client {
@@ -22,6 +22,7 @@ model User {
   feedback    EventFeedback[]
   invitesSent Invite[]        @relation("InviteInviter")
   apiKeys     ApiKey[]        @relation("ApiKeyCreator")
+  redTeamRuns RedTeamRun[]    @relation("RedTeamRunCreator")
 }
 
 model Session {
@@ -64,6 +65,10 @@ model Org {
   feedback    EventFeedback[]
   alerts      Alert[]
   invites     Invite[]
+  redTeamTargets   RedTeamTarget[]
+  redTeamRuns      RedTeamRun[]
+  redTeamItems     RedTeamItem[]
+  redTeamSchedules RedTeamSchedule[]
 }
 
 model Membership {
@@ -114,6 +119,9 @@ model App {
   org     Org              @relation(fields: [orgId], references: [id], onDelete: Cascade)
   apiKeys ApiKey[]
   events  DetectionEvent[]
+  redTeamTargets   RedTeamTarget[]
+  redTeamRuns      RedTeamRun[]
+  redTeamSchedules RedTeamSchedule[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -212,7 +220,7 @@ model Alert {
   appId   String?
   appName String?
 
-  // block_rate_spike | high_confidence_injection | gateway_error
+  // block_rate_spike | high_confidence_injection | gateway_error | red_team_regression
   kind String
   // info | warning | critical
   severity String @default("warning")
@@ -228,4 +236,141 @@ model Alert {
 
   @@index([orgId, createdAt])
   @@index([orgId, kind, createdAt])
+}
+
+model RedTeamTarget {
+  id    String  @id @default(cuid())
+  orgId String
+  appId String?
+
+  name String
+  // gateway | http
+  kind String
+  url  String?
+  method       String @default("POST")
+  headersJson  String @default("{}")
+  bodyTemplate String @default("{\"text\":\"{{prompt}}\"}")
+
+  createdAt DateTime @default(now())
+
+  org  Org   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  app  App?  @relation(fields: [appId], references: [id], onDelete: SetNull)
+  runs RedTeamRun[]
+  schedules RedTeamSchedule[]
+
+  @@index([orgId])
+}
+
+model RedTeamRun {
+  id          String  @id @default(cuid())
+  orgId       String
+  appId       String?
+  targetId    String?
+  createdById String?
+
+  // queued | running | completed | failed
+  status String @default("queued")
+  // manual | schedule
+  trigger String @default("manual")
+
+  // gateway | http
+  targetKind String
+  targetUrl  String?
+  targetName String
+  method       String @default("POST")
+  headersJson  String @default("{}")
+  bodyTemplate String @default("{\"text\":\"{{prompt}}\"}")
+
+  corporaJson String @default("[]")
+  customText  String @default("")
+  customCount Int    @default(0)
+
+  concurrency    Int @default(2)
+  timeoutSeconds Int @default(15)
+
+  totalItems Int    @default(0)
+  passed     Int    @default(0)
+  failed     Int    @default(0)
+  errors     Int    @default(0)
+  passRate   Float?
+
+  regressionsJson String  @default("[]")
+  errorMessage    String?
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  org       Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  app       App?          @relation(fields: [appId], references: [id], onDelete: SetNull)
+  target    RedTeamTarget? @relation(fields: [targetId], references: [id], onDelete: SetNull)
+  createdBy User?         @relation("RedTeamRunCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  items     RedTeamItem[]
+
+  @@index([orgId, createdAt])
+  @@index([orgId, status])
+  @@index([appId, createdAt])
+}
+
+model RedTeamItem {
+  id    String @id @default(cuid())
+  runId String
+  orgId String
+
+  corpus        String
+  sourceId      String
+  promptHash    String
+  promptExcerpt String
+  // attack | benign
+  expected String
+  // pass | fail | error
+  outcome  String
+
+  detectorStatus   String?
+  httpStatus       Int?
+  latencyMs        Int?
+  error            String?
+  responseExcerpt  String?
+  isRegression     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  run RedTeamRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  org Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([orgId, runId])
+}
+
+model RedTeamSchedule {
+  id       String  @id @default(cuid())
+  orgId    String
+  appId    String?
+  targetId String?
+
+  enabled Boolean @default(true)
+  cadence String  @default("weekly")
+
+  targetKind   String
+  targetUrl    String?
+  targetName   String
+  method       String @default("POST")
+  headersJson  String @default("{}")
+  bodyTemplate String @default("{\"text\":\"{{prompt}}\"}")
+
+  corporaJson    String @default("[]")
+  customText     String @default("")
+  concurrency    Int    @default(2)
+  timeoutSeconds Int    @default(15)
+
+  lastRunAt DateTime?
+  nextRunAt DateTime
+  createdAt DateTime  @default(now())
+
+  org    Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  app    App?           @relation(fields: [appId], references: [id], onDelete: SetNull)
+  target RedTeamTarget? @relation(fields: [targetId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([nextRunAt, enabled])
 }

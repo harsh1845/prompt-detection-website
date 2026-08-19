@@ -111,8 +111,8 @@ export default function AlertSettingsForm({
           </span>
         </label>
 
-        <FormError message={state.error} />
-        <FormSuccess message={state.success} />
+        <FormError message={state?.error} />
+        <FormSuccess message={state?.success} />
 
         {!disabled && (
           <SubmitButton pendingLabel="Saving…">Save alert rules</SubmitButton>
@@ -124,8 +124,8 @@ export default function AlertSettingsForm({
           <SubmitButton variant="ghost" pendingLabel="Sending…">
             Send test alert
           </SubmitButton>
-          <FormError message={testState.error} />
-          <FormSuccess message={testState.success} />
+          <FormError message={testState?.error} />
+          <FormSuccess message={testState?.success} />
         </form>
       )}
     </div>

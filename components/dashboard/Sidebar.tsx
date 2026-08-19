@@ -7,6 +7,7 @@ const primaryNav = [
   { href: "/overview", label: "Overview" },
   { href: "/events", label: "Events" },
   { href: "/apps", label: "Apps & keys" },
+  { href: "/red-team", label: "Red team" },
   { href: "/alerts", label: "Alerts" },
 ];
 
@@ -60,7 +61,7 @@ export default function Sidebar({ unreadAlerts }: { unreadAlerts: number }) {
   const pathname = usePathname();
 
   return (
-    <aside className="border-b border-hairline bg-elevated/40 lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:border-b-0 lg:border-r">
+    <aside className="border-b border-hairline bg-elevated/40 print:hidden lg:sticky lg:top-0 lg:h-screen lg:w-60 lg:shrink-0 lg:border-b-0 lg:border-r">
       <div className="flex h-16 items-center border-b border-hairline px-5">
         <Link
           href="/overview"

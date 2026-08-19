@@ -16,15 +16,19 @@ function baseUrl() {
 export default async function OnboardingPage() {
   const { org } = await requireTenantContext();
 
-  const [firstApp, keyCount, eventCount, feedbackCount] = await Promise.all([
-    prisma.app.findFirst({
-      where: { orgId: org.id },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.apiKey.count({ where: { orgId: org.id, revokedAt: null } }),
-    prisma.detectionEvent.count({ where: { orgId: org.id } }),
-    prisma.eventFeedback.count({ where: { orgId: org.id } }),
-  ]);
+  const [firstApp, keyCount, eventCount, feedbackCount, redTeamCount] =
+    await Promise.all([
+      prisma.app.findFirst({
+        where: { orgId: org.id },
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.apiKey.count({ where: { orgId: org.id, revokedAt: null } }),
+      prisma.detectionEvent.count({ where: { orgId: org.id } }),
+      prisma.eventFeedback.count({ where: { orgId: org.id } }),
+      prisma.redTeamRun.count({
+        where: { orgId: org.id, status: "completed" },
+      }),
+    ]);
 
   const steps = [
     {
@@ -61,6 +65,13 @@ export default async function OnboardingPage() {
       done: feedbackCount > 0,
       href: "/events",
       cta: "Open events",
+    },
+    {
+      title: "Run a red-team scan",
+      body: "Replay jailbreak and injection packs through the gateway, or point the runner at your chatbot URL.",
+      done: redTeamCount > 0,
+      href: "/red-team",
+      cta: "Open red team",
     },
   ];
 

@@ -27,9 +27,9 @@ export default function KeyManager({ appId }: { appId: string }) {
         <SubmitButton pendingLabel="Issuing…">Issue key</SubmitButton>
       </form>
 
-      <FormError message={state.error} />
+      <FormError message={state?.error} />
 
-      {state.secret && (
+      {state?.secret && (
         <div className="space-y-3 rounded-sm border border-signal/30 bg-signal/5 p-4">
           <p className="font-body text-[13px] text-ink">
             Copy <span className="font-mono text-signal">{state.name}</span> now —

@@ -26,7 +26,7 @@ export default async function OverviewPage({
 }) {
   const { org } = await requireTenantContext();
 
-  const [metrics, recent, appCount] = await Promise.all([
+  const [metrics, recent, appCount, latestScan] = await Promise.all([
     getOverviewMetrics(org.id, 24),
     prisma.detectionEvent.findMany({
       where: { orgId: org.id },
@@ -35,6 +35,10 @@ export default async function OverviewPage({
       include: { app: { select: { name: true } } },
     }),
     prisma.app.count({ where: { orgId: org.id } }),
+    prisma.redTeamRun.findFirst({
+      where: { orgId: org.id, status: "completed" },
+      orderBy: { finishedAt: "desc" },
+    }),
   ]);
 
   return (
@@ -51,6 +55,9 @@ export default async function OverviewPage({
         <div className="flex gap-3">
           <Link href="/events" className={ghostButtonClass}>
             View all events
+          </Link>
+          <Link href="/red-team" className={ghostButtonClass}>
+            Red team
           </Link>
           <Link href="/apps" className={primaryButtonClass}>
             Apps &amp; keys
@@ -174,6 +181,47 @@ export default async function OverviewPage({
           )}
         </Panel>
       </div>
+
+      {latestScan ? (
+        <Panel
+          title="Latest red-team scan"
+          description={latestScan.targetName}
+          action={
+            <Link
+              href={`/red-team/${latestScan.id}`}
+              className="font-body text-[13px] text-signal hover:underline"
+            >
+              Open run
+            </Link>
+          }
+        >
+          <div className="grid grid-cols-2 gap-px bg-hairline sm:grid-cols-4">
+            <StatCard
+              label="Pass rate"
+              value={
+                latestScan.passRate == null
+                  ? "—"
+                  : formatPercent(latestScan.passRate, 0)
+              }
+              tone={
+                latestScan.passRate != null && latestScan.passRate < 0.85
+                  ? "crit"
+                  : "signal"
+              }
+            />
+            <StatCard label="Passed" value={formatNumber(latestScan.passed)} />
+            <StatCard
+              label="Failed"
+              value={formatNumber(latestScan.failed)}
+              tone={latestScan.failed > 0 ? "crit" : "neutral"}
+            />
+            <StatCard
+              label="When"
+              value={formatRelative(latestScan.createdAt)}
+            />
+          </div>
+        </Panel>
+      ) : null}
 
       <Panel
         title="Latest events"
